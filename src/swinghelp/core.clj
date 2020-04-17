@@ -1,6 +1,7 @@
 (ns swinghelp.core
   (:require [defun.core :refer [defun]]
-            [clojure.string :refer [join]])
+            [clojure.string :refer [join]]
+            [clojure.spec.alpha :as s])
   (:use [seesaw core font]))
 
 (defn get-elem-id [root id]
@@ -65,3 +66,4 @@
   (decorator k (join " " (map html* args))))
 
 (defn html [& args] (html* (list* :html args)))
+
