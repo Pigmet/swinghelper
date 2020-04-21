@@ -42,12 +42,12 @@
 (s/def ::html-spec
   (s/or
    :literal (complement coll?)
-   :command (s/cat :k keyword? :style (s/? map?) :args (s/* ::html-spec))
+   :command (s/cat :k keyword? :style (s/? map?) :args (s/* any?))
    :invalid any?))
 
 ;;(eduplot.helper/ditch html)
 
-(defmulti html*
+(defmulti ^:private  html*
   "Converts data to html string."
   (fn [x] (key (s/conform ::html-spec x))))
 
@@ -58,16 +58,29 @@
 (defmethod html* :literal [x] (str x))
 
 (s/conform ::html-spec [:p {:text-align "center" :color "black"} "hello"])
-;; => [:command
-;;     {:k :p,
-;;      :style {:text-align "center", :color "black"},
-;;      :args [[:literal "hello"]]}]
+
+(s/conform ::html-spec
+           [:html [:p "a"]])
 
 (defn- style-string [m]
   (join ";" (map (fn [[k v]] (format "%s:%s" (name k) v)) m)))
 
-(defmethod html* :command [[k & args]])
+;; FIXME: parsing data then appling html* recursively to the result
+;; does not work since the data is now a map like {:k ... :style ..}
 
-(defn html [& args] (html* (list* :html args)))
+(defmethod html* :command [data]
+  (let [{:keys [k style args]} (val (s/conform ::html-spec data))
+        style-s (when style (style-string style))
+        wrap-this (fn [s] (format "<%s>" s))
+        beg (cond-> (name k)
+              style-s (str  (format " style=\"%s\"" style-s))
+              true wrap-this)
+        end (wrap-this (str "\\" (name k)))
+        body-s (join " " (map html* args))]
+    (str beg body-s end)))
+
+(defn html [& args] ( html*  (list* :html args)))
+
+
 
 
