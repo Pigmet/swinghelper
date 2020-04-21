@@ -75,11 +75,29 @@
         beg (cond-> (name k)
               style-s (str  (format " style=\"%s\"" style-s))
               true wrap-this)
-        end (wrap-this (str "\\" (name k)))
+        end (wrap-this (str "/" (name k)))
         body-s (join " " (map html* args))]
     (str beg body-s end)))
 
-(defn html [& args] ( html*  (list* :html args)))
+(defn html
+  "Converts args to html string."
+  [& args] (html*  (list* :html args)))
+
+(comment
+
+  (defn- demo [s]
+    (-> (frame :width 500
+               :height 500
+               :content (label :id :output :class :font :text s))
+        (sset-class! [:font :font] (font :size 30))
+        show!))
+
+  (demo (html 
+         [:p {:color "red"} "first p"]
+         [:p {:color "blue" :text-align "center"
+              :background-color "gray"} "second p"]))
+
+  )
 
 
 
