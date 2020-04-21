@@ -39,15 +39,10 @@
 
 ;; html
 
-(defn- decorator [k s]
-  (let [beg (format "<%s>" (name k))
-        end (format "</%s>" (name k))]
-    (str beg s end)))
-
 (s/def ::html-spec
   (s/or
    :literal (complement coll?)
-   :command (s/cat :k keyword? :args (s/* ::html-spec))
+   :command (s/cat :k keyword? :style (s/? map?) :args (s/* ::html-spec))
    :invalid any?))
 
 ;;(eduplot.helper/ditch html)
@@ -62,8 +57,16 @@
 
 (defmethod html* :literal [x] (str x))
 
-(defmethod html* :command [[k & args]]
-  (decorator k (join " " (map html* args))))
+(s/conform ::html-spec [:p {:text-align "center" :color "black"} "hello"])
+;; => [:command
+;;     {:k :p,
+;;      :style {:text-align "center", :color "black"},
+;;      :args [[:literal "hello"]]}]
+
+(defn- style-string [m]
+  (join ";" (map (fn [[k v]] (format "%s:%s" (name k) v)) m)))
+
+(defmethod html* :command [[k & args]])
 
 (defn html [& args] (html* (list* :html args)))
 
